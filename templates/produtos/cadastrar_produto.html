@@ -4,15 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Novo Produto</title>
+    <!-- Link para o Bootstrap 4.5 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 <body>
-    <h1>Cadastrar Novo Produto</h1>
-    <form method="POST">
+
+<div class="container">
+    <h1 class="my-4">Cadastrar Novo Produto</h1>
+
+    <form method="POST" class="form-group">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Cadastrar Produto</button>
+
+        <div class="form-group">
+            <label for="id_codigo">Código</label>
+            <input type="text" name="codigo" class="form-control" id="id_codigo" value="{{ form.codigo.value|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="id_nome">Nome</label>
+            <input type="text" name="nome" class="form-control" id="id_nome" value="{{ form.nome.value|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="id_categoria">Categoria</label>
+            <select name="categoria" class="form-control" id="id_categoria" required>
+                <option value="" disabled {% if not form.categoria.value %} selected {% endif %}>Selecione uma categoria</option>
+                <option value="Cereais" {% if form.categoria.value == 'Cereais' %} selected {% endif %}>Cereais</option>
+                <option value="Geleias" {% if form.categoria.value == 'Geleias' %} selected {% endif %}>Geleias</option>
+                <option value="Frios" {% if form.categoria.value == 'Frios' %} selected {% endif %}>Frios</option>
+                <option value="Massas" {% if form.categoria.value == 'Massas' %} selected {% endif %}>Massas</option>
+                <option value="Bebidas" {% if form.categoria.value == 'Bebidas' %} selected {% endif %}>Bebidas</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_descricao">Descrição</label>
+            <textarea name="descricao" class="form-control" id="id_descricao" rows="4" required>{{ form.descricao.value|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="id_preco">Preço</label>
+            <input type="number" step="0.01" name="preco" class="form-control" id="id_preco" value="{{ form.preco.value|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="id_preco_custo">Preço de Custo</label>
+            <input type="number" step="0.01" name="preco_custo" class="form-control" id="id_preco_custo" value="{{ form.preco_custo.value|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="id_estoque">Estoque</label>
+            <input type="number" name="estoque" class="form-control" id="id_estoque" value="{{ form.estoque.value|default:'' }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
     </form>
+
     <br>
-    <a href="{% url 'produtos:produto_list' %}">Voltar para a lista de produtos</a>
+    <a href="{% url 'produtos:produto_list' %}" class="btn btn-secondary">Voltar para Lista</a>
+</div>
+
+<!-- Scripts do Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>
