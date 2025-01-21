@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Banquinha de Produtos Coloniais</title>
+</head>
+<body>
+    <h1>Produtos Coloniais</h1>
+    <a href="{% url 'produtos:cadastrar_produto' %}">Cadastrar Novo Produto</a>
+    <a href="{% url 'vendas:pdv' %}">PDV</a> <!-- Link to PDV screen -->
+
+    <h2>Lista de Produtos</h2>
+    <ul>
+        {% for produto in produtos %}
+        <li>
+            <h3>{{ produto.nome }}</h3>
+            <p><strong>Categoria:</strong> {{ produto.categoria }}</p>
+            <p><strong>Descrição:</strong> {{ produto.descricao }}</p>
+            <p><strong>Preço:</strong> R$ {{ produto.preco }}</p>
+            <p><strong>Estoque:</strong> {{ produto.estoque }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

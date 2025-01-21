@@ -1,0 +1,260 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos Coloniais</title>
+    <!-- Link para o Bootstrap 4.5 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;  /* Fonte reduzida */
+        }
+        .container {
+            width: 100%;  /* Aumenta a largura da container */
+            margin: 0 auto;
+        }
+        .product-search input {
+            font-size: 12px;  /* Fonte reduzida */
+            padding: 8px;
+            width: 70%;  /* Maior largura para otimizar o espaço */
+        }
+        .product-search .input-group {
+            margin-bottom: 10px;
+        }
+        .product-list, .carrinho-list {
+            margin-top: 15px;
+            width: 100%;  /* Garantir que ocupem 100% da tela */
+        }
+        .product-list table, .carrinho-list table {
+            width: 100%;  /* Tabelas ocupando 100% da largura */
+            border-collapse: collapse;
+        }
+        .product-list th, .carrinho-list th, .product-list td, .carrinho-list td {
+            padding: 5px;
+            text-align: center;
+            font-size: 10px;  /* Fonte reduzida */
+        }
+        .product-list tr:nth-child(even), .carrinho-list tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .total {
+            font-size: 16px;  /* Tamanho otimizado para o total */
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .payment-options button {
+            font-size: 12px;  /* Fonte reduzida */
+            padding: 6px 10px;
+        }
+        .deleted {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-style: italic;
+        }
+        /* Botões menores */
+        .btn {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        /* Ajustes para maior espaçamento entre campos */
+        .form-control {
+            font-size: 12px;
+            padding: 8px;
+        }
+        .modal-body input {
+            font-size: 12px;
+            padding: 8px;
+        }
+        .modal-body button {
+            font-size: 12px;
+            padding: 8px;
+        }
+        /* Ajustar as colunas para ficarem mais compactas */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .col-md-6 {
+            flex: 1 1 48%;  /* Divisão das colunas mais estreitas */
+            margin-right: 2%;
+        }
+        .col-md-6:last-child {
+            margin-right: 0;
+        }
+        /* Ajustes de exibição para a linha de produto */
+        .product-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .product-row .form-control {
+            width: 60px;  /* Reduzindo a largura de quantidade e peso */
+        }
+        .product-row button {
+            margin-left: 10px;  /* Espaçamento entre os botões */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="mb-3">Caixa</h1>
+
+    <!-- Botão para nova venda (limpar carrinho) -->
+    <form method="GET" action="{% url 'vendas:limpar_carrinho' %}">
+        <button type="submit" class="btn btn-primary mb-3">Limpar</button>
+    </form>
+
+    <!-- Divisão do layout em duas colunas: pesquisa e carrinho -->
+    <div class="row">
+        <!-- Coluna para o formulário de pesquisa e exibição do produto -->
+        <div class="col-md-6">
+            <div class="product-search">
+                <form method="GET" action="">
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" name="search" value="{{ search_query }}" placeholder="Digite o código ou nome do produto">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Exibindo os resultados da pesquisa -->
+            <div class="product-list">
+                <h5>Produtos</h5>
+                {% if erro_busca %}
+                    <p class="text-danger">Produto não encontrado. Por favor, consulte manualmente.</p>
+                {% endif %}
+                {% if produto %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 15%;">Cód.</th>
+                                <th class="text-center" style="width: 40%;">Descrição</th>
+                                <th class="text-center" style="width: 15%;">Valor</th>
+                                <th class="text-center" style="width: 15%;">Cat.</th>
+                                <th class="text-center" style="width: 15%;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in produto %}
+                            <tr>
+                                <td class="text-center">{{ p.codigo }}</td>
+                                <td class="text-right">{{ p.nome }}</td>
+                                <td class="text-right">{{ p.preco|format_currency }}</td>
+                                <td>{{ p.categoria }}</td>
+                                <td>
+                                    <form method="POST" action="">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="produto_id" value="{{ p.id }}">
+                                        <div class="product-row">
+                                            <label for="quantidade">Qtd:</label>
+                                            <input type="number" class="form-control mb-2" name="quantidade" value="1" min="1" required>
+
+                                            {% if p.categoria == 'Frios' %}
+                                                <label for="peso">Peso (kg):</label>
+                                                <input type="number" class="form-control mb-2" id="peso" name="peso" min="0.1" step="0.1" placeholder="Peso em kg" value="{{ peso|default:0 }}">
+                                            {% endif %}
+                                            
+                                            <button type="submit" class="btn btn-success btn-sm">Adicionar</button>
+                                        </div>
+                                    </form>                                  
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Produto não encontrado.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Coluna para o carrinho de compras -->
+        <div class="col-md-6">
+            <div class="carrinho-list">
+                <h5>Itens</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 10%;">Seq.</th>
+                            <th class="text-center" style="width: 40%;">Descrição</th>
+                            <th class="text-center" style="width: 15%;">Quantidade</th>
+                            <th class="text-center" style="width: 15%;">Valor</th>
+                            <th class="text-center" style="width: 20%;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in carrinho %}
+                        <tr class="{% if item.cancelado %}text-danger font-italic{% endif %}">
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            <td class="text-right">{{ item.nome }}</td>
+                            <td class="text-center">{{ item.quantidade }}</td>
+                            <td class="text-right">{{ item.preco_unitario|format_currency }}</td>
+                            <td class="text-right">{{ item.total|format_currency }}</td>
+                        </tr>                         
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="total">
+                    <h5>Total a Pagar: <strong>{{ total|format_currency }}</strong></h5>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#cancelModal">Cancelar Item</button>
+            </div>
+            <div class="payment-options">
+                <h5>Selecione a Forma de Pagamento</h5>
+                <button class="btn btn-primary btn-sm">Dinheiro</button>
+                <button class="btn btn-success btn-sm">Cartão de Crédito</button>
+                <button class="btn btn-warning btn-sm">Cartão de Débito</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Cancelar Item -->
+<div class="modal" id="cancelModal" tabindex="-1" role="dialog" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Escolha o Item a Cancelar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'vendas:cancelar_item' %}">
+                    {% csrf_token %}
+                    <label for="item_cancelado">Selecione o item:</label>
+                    <select class="form-control" id="item_cancelado" name="item_id" required>
+                        {% for item in carrinho %}
+                            <option value="{{ item.id }}">{{ item.id }} - {{ item.nome }} - R$ {{ item.total }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-danger btn-sm mt-3">Confirmar Cancelamento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    function openPesoPopup() {
+        $('#pesoModal').modal('show');
+    }
+</script>
+
+</body>
+</html>
